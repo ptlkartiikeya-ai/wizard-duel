@@ -591,3 +591,4 @@ class ParticleSystem {
 
 // Attach it to the window global namespace for access across scripts
 window.ParticleSystem = ParticleSystem;
+window.Particle = Particle;
