@@ -1034,6 +1034,7 @@ class GameEngine {
     }
     
     else if (cfg.type === 'targeted') {
+      const casterElement = caster.element || 'fire';
       this.thunderbolts.push({
         x: target.x,
         y: target.y,
@@ -1042,11 +1043,13 @@ class GameEngine {
         radius: cfg.radius,
         damage: cfg.damage,
         owner: ownerId,
-        stun: cfg.stunDuration
+        stun: cfg.stunDuration,
+        element: casterElement,
+        color: cfg.color
       });
 
-      this.triggerSyncedEvent('thunder_charge', { x: target.x, y: target.y });
-      if (!this.isBotMode) this.broadcastEvent('thunder_charge', { x: target.x, y: target.y });
+      this.triggerSyncedEvent('targeted_charge', { x: target.x, y: target.y, element: casterElement });
+      if (!this.isBotMode) this.broadcastEvent('targeted_charge', { x: target.x, y: target.y, element: casterElement });
     }
 
     else if (cfg.type === 'potion') {
@@ -1172,21 +1175,51 @@ class GameEngine {
         );
         this.sound.playHeal();
         break;
-      case 'thunder_charge':
+      case 'targeted_charge':
         this.sound.playCast();
         break;
+      case 'thunder_charge':
+        this.sound.playCast(); // legacy fallback
+        break;
       case 'lightning_impact':
+        // Lightning element targeted impact
         this.fx.spawnLightningStrike(data.x, 0, data.y);
         this.sound.playLightning();
-        
-        // Push visual bolt to list
         this.activeBolts.push({
-          x: data.x,
-          startY: 0,
-          endY: data.y,
-          life: 15,
+          x: data.x, startY: 0, endY: data.y, life: 15,
           segments: this.generateJaggedPath(data.x, 0, data.y, 10)
         });
+        break;
+      case 'targeted_impact':
+        // Element-specific targeted impact
+        if (data.element === 'fire') {
+          this.fx.spawnFireExplosion(data.x, data.y);
+          this.sound.playExplosion();
+        } else if (data.element === 'ice') {
+          this.fx.spawnIceShatter(data.x, data.y);
+          this.fx.spawnShockwave(data.x, data.y, '#00ccff', 80, 22);
+          this.sound.playExplosion();
+        } else if (data.element === 'lightning') {
+          this.fx.spawnLightningStrike(data.x, 0, data.y);
+          this.sound.playLightning();
+          this.activeBolts.push({
+            x: data.x, startY: 0, endY: data.y, life: 15,
+            segments: this.generateJaggedPath(data.x, 0, data.y, 10)
+          });
+        } else if (data.element === 'earth') {
+          this.fx.spawnEarthShatter(data.x, data.y);
+          this.sound.playExplosion();
+        } else if (data.element === 'water') {
+          this.fx.spawnWaterGeyser(data.x, data.y);
+          this.sound.playExplosion();
+        } else if (data.element === 'wind') {
+          this.fx.spawnWindVortex(data.x, data.y);
+          this.fx.spawnShockwave(data.x, data.y, '#e0e0e0', 85, 22);
+          this.sound.playExplosion();
+        } else {
+          this.fx.spawnFireExplosion(data.x, data.y);
+          this.sound.playExplosion();
+        }
         break;
       case 'heal_activate':
         this.fx.spawnHealBurst(this.players[data.owner].x, this.players[data.owner].y);
@@ -1411,16 +1444,77 @@ class GameEngine {
       }
     }
 
-    // Thunderbolt targeted strikes
+    // Targeted area strikes (all elements)
     for (let i = this.thunderbolts.length - 1; i >= 0; i--) {
       const bolt = this.thunderbolts[i];
       bolt.delay--;
       
-      this.fx.spawnLightningCharge(bolt.x, bolt.y);
+      // Spawn element-specific charge particles while charging
+      const elem = bolt.element || 'lightning';
+      if (elem === 'lightning') {
+        this.fx.spawnLightningCharge(bolt.x, bolt.y);
+      } else if (elem === 'fire') {
+        // Rising heat shimmer around impact zone
+        if (Math.random() < 0.3) {
+          const P = window.Particle;
+          const angle = Math.random() * Math.PI * 2;
+          const r = bolt.radius * 0.4 * Math.random();
+          this.fx.particles.push(new P({
+            x: bolt.x + Math.cos(angle) * r, y: bolt.y + Math.sin(angle) * r,
+            vx: (Math.random() - 0.5) * 0.6, vy: -1 - Math.random(),
+            color: `hsl(${15 + Math.random() * 20}, 100%, 60%)`,
+            size: 2 + Math.random() * 3, life: 18, drag: 0.95, gravity: -0.02
+          }));
+        }
+      } else if (elem === 'ice') {
+        if (Math.random() < 0.3) {
+          const P = window.Particle;
+          const angle = Math.random() * Math.PI * 2;
+          const r = bolt.radius * 0.4 * Math.random();
+          this.fx.particles.push(new P({
+            x: bolt.x + Math.cos(angle) * r, y: bolt.y + Math.sin(angle) * r,
+            vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5,
+            color: '#aaddff', size: 2 + Math.random() * 2, life: 15, drag: 0.97, shape: 'star'
+          }));
+        }
+      } else if (elem === 'earth') {
+        if (Math.random() < 0.2) {
+          const P = window.Particle;
+          const angle = Math.random() * Math.PI * 2;
+          const r = bolt.radius * 0.5 * Math.random();
+          this.fx.particles.push(new P({
+            x: bolt.x + Math.cos(angle) * r, y: bolt.y + Math.sin(angle) * r,
+            vx: (Math.random() - 0.5) * 0.8, vy: -0.5 - Math.random() * 0.5,
+            color: '#8b5a2b', size: 2 + Math.random() * 3, life: 20, drag: 0.96, gravity: 0.04, shape: 'shard'
+          }));
+        }
+      } else if (elem === 'water') {
+        if (Math.random() < 0.3) {
+          const P = window.Particle;
+          const angle = Math.random() * Math.PI * 2;
+          const r = bolt.radius * 0.4 * Math.random();
+          this.fx.particles.push(new P({
+            x: bolt.x + Math.cos(angle) * r, y: bolt.y + Math.sin(angle) * r,
+            vx: (Math.random() - 0.5) * 0.8, vy: -0.8 - Math.random(),
+            color: '#3399ff', size: 2 + Math.random() * 2, life: 15, drag: 0.96, gravity: 0.05
+          }));
+        }
+      } else if (elem === 'wind') {
+        if (Math.random() < 0.3) {
+          const P = window.Particle;
+          const angle = Math.random() * Math.PI * 2;
+          const r = bolt.radius * 0.4 * Math.random();
+          this.fx.particles.push(new P({
+            x: bolt.x + Math.cos(angle) * r, y: bolt.y + Math.sin(angle) * r,
+            vx: -Math.sin(angle) * (1 + Math.random()), vy: Math.cos(angle) * 0.5 - 0.5,
+            color: '#d0d0d0', size: 1.5 + Math.random() * 2, life: 14, drag: 0.98, gravity: -0.02, shape: 'star'
+          }));
+        }
+      }
 
       if (bolt.delay <= 0) {
-        this.triggerSyncedEvent('lightning_impact', { x: bolt.x, y: bolt.y });
-        if (!this.isBotMode) this.broadcastEvent('lightning_impact', { x: bolt.x, y: bolt.y });
+        this.triggerSyncedEvent('targeted_impact', { x: bolt.x, y: bolt.y, element: bolt.element || 'lightning' });
+        if (!this.isBotMode) this.broadcastEvent('targeted_impact', { x: bolt.x, y: bolt.y, element: bolt.element || 'lightning' });
 
         [host, client].forEach((wiz, idx) => {
           const idStr = idx === 0 ? 'host' : 'client';
@@ -1449,7 +1543,13 @@ class GameEngine {
                 this.stats.damageDealt += dmg;
               }
 
-              this.fx.spawnText(wiz.x, wiz.y - 20, `-${Math.round(dmg)} STUN`, '#ffe600', 16, 'bold');
+              const elemTextColors = {
+                fire: '#ff5500', ice: '#aaddff', lightning: '#ffe600',
+                earth: '#39ff14', water: '#3399ff', wind: '#e0e0e0'
+              };
+              const hitColor = elemTextColors[bolt.element] || '#ffe600';
+              const hitLabel = bolt.stun > 0 ? `-${Math.round(dmg)} STUN` : `-${Math.round(dmg)}`;
+              this.fx.spawnText(wiz.x, wiz.y - 20, hitLabel, hitColor, 16, 'bold');
             }
 
             if (wiz.health <= 0) {
@@ -1818,29 +1918,40 @@ class GameEngine {
     const ctx = this.ctx;
     this.thunderbolts.forEach(bolt => {
       ctx.save();
-      // Use stored maxDelay so animation works for all elements' different delays
       const maxD = bolt.maxDelay || 36;
       const progress = Math.max(0, Math.min(1, 1 - (bolt.delay / maxD)));
-      const ringColor = bolt.owner === 'host' ? '#ffe600' : '#ff9900';
       
-      ctx.strokeStyle = `rgba(255, 230, 0, ${progress * 0.7})`;
-      ctx.lineWidth = 2;
-      ctx.shadowBlur = 10;
+      // Color by element
+      const elemColors = {
+        fire: '#ff5500', ice: '#00ccff', lightning: '#ffe600',
+        earth: '#39ff14', water: '#3399ff', wind: '#e0e0e0'
+      };
+      const ringColor = elemColors[bolt.element] || '#ffe600';
+      
+      ctx.strokeStyle = ringColor;
+      ctx.lineWidth = 2.5;
+      ctx.shadowBlur = 14;
       ctx.shadowColor = ringColor;
+      ctx.globalAlpha = progress * 0.7;
       ctx.beginPath();
       ctx.arc(bolt.x, bolt.y, bolt.radius, 0, Math.PI * 2);
       ctx.stroke();
+      ctx.globalAlpha = 1;
 
-      ctx.fillStyle = `rgba(255, 230, 0, ${progress * 0.2})`;
+      // Filling circle
+      ctx.globalAlpha = progress * 0.18;
+      ctx.fillStyle = ringColor;
       ctx.beginPath();
       ctx.arc(bolt.x, bolt.y, bolt.radius * progress, 0, Math.PI * 2);
       ctx.fill();
+      ctx.globalAlpha = 1;
 
+      // Crosshair
       ctx.strokeStyle = `rgba(255, 255, 255, ${progress})`;
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(bolt.x - 10, bolt.y); ctx.lineTo(bolt.x + 10, bolt.y);
-      ctx.moveTo(bolt.x, bolt.y - 10); ctx.lineTo(bolt.x, bolt.y + 10);
+      ctx.moveTo(bolt.x - 12, bolt.y); ctx.lineTo(bolt.x + 12, bolt.y);
+      ctx.moveTo(bolt.x, bolt.y - 12); ctx.lineTo(bolt.x, bolt.y + 12);
       ctx.stroke();
       
       ctx.restore();
