@@ -18,7 +18,6 @@
     <!-- Background Space Matrix -->
     <div class="stars"></div>
     <div class="nebula"></div>
-
     <!-- Authentication Screen (Sign up/Login) -->
     <div id="auth-screen" class="screen active">
       <div class="auth-card glass-panel border-glow">
@@ -29,7 +28,6 @@
           <button id="tab-login" class="auth-tab active">Login</button>
           <button id="tab-signup" class="auth-tab">Sign Up</button>
         </div>
-
         <form id="auth-form" class="auth-form">
           <div class="form-group">
             <label for="auth-username">Wizard Username</label>
@@ -48,14 +46,12 @@
         </div>
       </div>
     </div>
-
     <!-- Main Lobby View -->
     <div id="lobby-screen" class="screen">
       <header class="lobby-header">
         <h1 class="game-title">SPELLCASTERS' ARENA</h1>
         <p class="game-subtitle">Online P2P Wizards Duel</p>
       </header>
-
       <!-- Player Profile Dashboard Card -->
       <section class="profile-dashboard glass-panel border-glow">
         <div class="profile-header">
@@ -86,12 +82,10 @@
           </div>
         </div>
       </section>
-
       <main class="lobby-panels">
         <!-- Setup & Customization -->
         <section class="panel glass-panel customization-panel">
           <h2>Wizard Customization</h2>
-
           <div class="form-group">
             <label>Choose Aura Color</label>
             <div class="color-picker-grid">
@@ -102,7 +96,6 @@
               <button class="color-btn" data-color="#9d00ff" style="--color: #9d00ff;"></button> <!-- Purple -->
             </div>
           </div>
-
           <div class="form-group">
             <label>Signature Element & Upgrades</label>
             <div class="element-picker">
@@ -129,7 +122,6 @@
                   <button class="btn upgrade-btn" data-element="ice" id="btn-upgrade-ice">Upgrade (200 🪙)</button>
                 </div>
               </div>
-
               <!-- Lightning -->
               <div class="class-card" data-element="lightning">
                 <button class="element-btn" data-element="lightning">
@@ -141,7 +133,6 @@
                   <button class="btn upgrade-btn" data-element="lightning" id="btn-upgrade-lightning">Upgrade (200 🪙)</button>
                 </div>
               </div>
-
               <!-- Earth -->
               <div class="class-card" data-element="earth">
                 <button class="element-btn" data-element="earth">
@@ -153,7 +144,6 @@
                   <button class="btn upgrade-btn" data-element="earth" id="btn-upgrade-earth">Upgrade (200 🪙)</button>
                 </div>
               </div>
-
               <!-- Water -->
               <div class="class-card" data-element="water">
                 <button class="element-btn" data-element="water">
@@ -165,7 +155,6 @@
                   <button class="btn upgrade-btn" data-element="water" id="btn-upgrade-water">Upgrade (200 🪙)</button>
                 </div>
               </div>
-
               <!-- Wind -->
               <div class="class-card" data-element="wind">
                 <button class="element-btn" data-element="wind">
@@ -177,7 +166,6 @@
                   <button class="btn upgrade-btn" data-element="wind" id="btn-upgrade-wind">Upgrade (200 🪙)</button>
                 </div>
               </div>
-
               <!-- Necromancer (Locked initially) -->
               <div class="class-card locked" id="card-necromancer" data-element="necromancer">
                 <div class="lock-overlay">
@@ -196,11 +184,9 @@
             </div>
           </div>
         </section>
-
         <!-- Connectivity & Mode Select -->
         <section class="panel glass-panel connectivity-panel">
           <h2>Enter the Arena</h2>
-
           <div class="form-group">
             <label for="bot-difficulty">Bot AI Difficulty</label>
             <select id="bot-difficulty" class="difficulty-select">
@@ -210,7 +196,6 @@
               <option value="impossible">Impossible (400 🪙 | 40 EXP)</option>
             </select>
           </div>
-
           <div class="form-group">
             <label for="map-selector">Select Battle Map</label>
             <select id="map-selector" class="map-select">
@@ -221,7 +206,6 @@
               <option value="earth">Ruins of Earth (Stone Pillars)</option>
             </select>
           </div>
-
           <div class="form-group">
             <label for="match-duration">Match Duration</label>
             <select id="match-duration" class="duration-select">
@@ -232,9 +216,7 @@
               <option value="300">5 Minutes</option>
             </select>
           </div>
-
           <div class="divider-thin"></div>
-
           <!-- Main Mode Selection -->
           <div id="mode-selection" class="mode-selection-group">
             <button id="btn-mode-bot" class="btn primary-btn glow-btn mode-card-btn">
@@ -253,7 +235,6 @@
               </div>
             </button>
           </div>
-
           <!-- P2P Matchmaking actions (hidden by default) -->
           <div id="p2p-actions" class="hidden">
             <button id="btn-host" class="btn primary-btn glow-btn">Create Match (Host)</button>
@@ -264,7 +245,6 @@
             </div>
             <button id="btn-p2p-back" class="btn link-btn" style="margin-top: 15px; color: var(--text-muted); background: transparent; border: none; font-size: 0.9rem; cursor: pointer; text-decoration: underline;">← Back to Modes</button>
           </div>
-
           <!-- Waiting/Hosting Status -->
           <div id="host-status" class="status-box hidden">
             <div class="spinner"></div>
@@ -276,7 +256,6 @@
             </div>
             <button id="btn-cancel-host" class="btn danger-btn small-btn">Cancel</button>
           </div>
-
           <!-- Connecting Status -->
           <div id="connect-status" class="status-box hidden">
             <div class="spinner border-glow"></div>
@@ -285,7 +264,6 @@
           </div>
         </section>
       </main>
-
       <!-- Global Leaderboard Display -->
       <section class="leaderboard-section glass-panel border-glow">
         <h2>🏆 Global Arena Leaderboard</h2>
@@ -308,7 +286,6 @@
           </table>
         </div>
       </section>
-
       <!-- Suggestions and Feedback Section -->
       <section class="suggestions-section glass-panel border-glow">
         <h2>💬 Arena Suggestions & Feedback</h2>
@@ -334,12 +311,10 @@
           <p id="suggestion-status" class="success-text"></p>
         </form>
       </section>
-
       <footer class="lobby-footer">
         <p>Direct peer-to-peer multiplayer using WebRTC. No install, no server latency.</p>
       </footer>
     </div>
-
     <!-- Arena Game View -->
     <div id="arena-screen" class="screen">
       <!-- Game HUD (Top Bar) -->
@@ -361,13 +336,11 @@
             </div>
           </div>
         </div>
-
         <!-- Timer / Round State (Center) -->
         <div class="hud-center">
           <div class="round-timer" id="game-timer">99</div>
           <div class="ping-display" id="ping-text">Ping: -- ms</div>
         </div>
-
         <!-- Player 2 Profile (Right) -->
         <div class="hud-profile player-right">
           <div class="profile-info">
@@ -386,7 +359,6 @@
           </div>
         </div>
       </header>
-
       <!-- Main Playfield Canvas -->
       <div id="canvas-wrapper">
         <canvas id="arena-canvas" width="1024" height="576"></canvas>
@@ -396,7 +368,6 @@
           <h2 id="announcer-text">ROUND START</h2>
         </div>
       </div>
-
       <!-- Control HUD & Skills Bar (Bottom Bar) -->
       <footer class="game-hud-bottom">
         <!-- Active Spells Slots -->
@@ -474,7 +445,6 @@
             </div>
           </div>
         </div>
-
         <!-- Quick Chat / Emote System -->
         <div class="quick-chat-container">
           <button id="btn-chat-toggle" class="btn circle-btn" title="Quick Chat">💬</button>
@@ -487,7 +457,6 @@
             <button class="chat-macro" data-msg="Well played.">Well played.</button>
           </div>
         </div>
-
         <!-- Exit Match / Settings Button -->
         <div class="controls-guide">
           <span>Move: <strong>WASD</strong> or <strong>Arrows</strong></span>
@@ -498,7 +467,6 @@
         <button id="btn-disconnect" class="btn danger-btn">Leave Duel</button>
       </footer>
     </div>
-
     <!-- Match Summary Screen -->
     <div id="summary-screen" class="screen">
       <div class="summary-card glass-panel border-glow">
@@ -519,7 +487,6 @@
             <span id="stat-blocks">0</span>
           </div>
         </div>
-
         <div class="summary-actions">
           <button id="btn-rematch" class="btn primary-btn glow-btn">Request Rematch</button>
           <button id="btn-summary-lobby" class="btn secondary-btn">Return to Lobby</button>
@@ -528,9 +495,7 @@
       </div>
     </div>
   </div>
-
   <!-- Audio elements could be added, but sound synthesis is done via Web Audio API in JS directly! -->
-
   <!-- JavaScript Modules -->
   <script src="database.js"></script>
   <script src="particle.js"></script>
@@ -538,3 +503,4 @@
   <script src="game.js"></script>
 </body>
 </html>
+
