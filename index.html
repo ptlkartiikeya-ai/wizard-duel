@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spellcasters' Arena | P2P Wizard Duel</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- PeerJS WebRTC Library -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+  <div id="game-container">
+    
+    <!-- Background Space Matrix -->
+    <div class="stars"></div>
+    <div class="nebula"></div>
+
+    <!-- Authentication Screen (Sign up/Login) -->
+    <div id="auth-screen" class="screen active">
+      <div class="auth-card glass-panel border-glow">
+        <h1 class="game-title">SPELLCASTERS' ARENA</h1>
+        <p class="game-subtitle">Sign Up or Login to Enter the Summoning Field</p>
+        
+        <div class="auth-tabs">
+          <button id="tab-login" class="auth-tab active">Login</button>
+          <button id="tab-signup" class="auth-tab">Sign Up</button>
+        </div>
+
+        <form id="auth-form" class="auth-form">
+          <div class="form-group">
+            <label for="auth-username">Wizard Username</label>
+            <input type="text" id="auth-username" required placeholder="Enter username..." autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label for="auth-password">Secret Password</label>
+            <input type="password" id="auth-password" required placeholder="Enter password..." autocomplete="current-password">
+          </div>
+          <button type="submit" id="btn-auth-submit" class="btn primary-btn glow-btn">Enter Arena</button>
+        </form>
+        <p id="auth-error" class="error-text"></p>
+      </div>
+    </div>
+
+    <!-- Main Lobby View -->
+    <div id="lobby-screen" class="screen">
+      <header class="lobby-header">
+        <h1 class="game-title">SPELLCASTERS' ARENA</h1>
+        <p class="game-subtitle">Online P2P Wizards Duel</p>
+      </header>
+
+      <!-- Player Profile Dashboard Card -->
+      <section class="profile-dashboard glass-panel border-glow">
+        <div class="profile-header">
+          <span class="user-greeting">Welcome, <strong id="lbl-username">Wizard</strong></span>
+          <span class="coins-display">🪙 <span id="lbl-coins">0</span> Coins</span>
+        </div>
+        <div class="profile-stats-grid">
+          <div class="profile-stat-box">
+            <span class="stat-label">Profile Level</span>
+            <span class="stat-val" id="lbl-profile-level">1</span>
+          </div>
+          <div class="profile-stat-box">
+            <span class="stat-label">Wins vs Bot</span>
+            <span class="stat-val" id="lbl-wins-bot">0</span>
+          </div>
+          <div class="profile-stat-box">
+            <span class="stat-label">Wins vs Players</span>
+            <span class="stat-val" id="lbl-wins-player">0</span>
+          </div>
+        </div>
+        <div class="exp-bar-container">
+          <div class="exp-bar-header">
+            <span>EXP Progress</span>
+            <span id="lbl-exp-text">0 / 100</span>
+          </div>
+          <div class="exp-bar-track">
+            <div id="lbl-exp-fill" class="exp-bar-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+      </section>
+
+      <main class="lobby-panels">
+        <!-- Setup & Customization -->
+        <section class="panel glass-panel customization-panel">
+          <h2>Wizard Customization</h2>
+
+          <div class="form-group">
+            <label>Choose Aura Color</label>
+            <div class="color-picker-grid">
+              <button class="color-btn active" data-color="#00f3ff" style="--color: #00f3ff;"></button> <!-- Cyan -->
+              <button class="color-btn" data-color="#ff007b" style="--color: #ff007b;"></button> <!-- Pink -->
+              <button class="color-btn" data-color="#39ff14" style="--color: #39ff14;"></button> <!-- Lime -->
+              <button class="color-btn" data-color="#ffb700" style="--color: #ffb700;"></button> <!-- Amber -->
+              <button class="color-btn" data-color="#9d00ff" style="--color: #9d00ff;"></button> <!-- Purple -->
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Signature Element & Upgrades</label>
+            <div class="element-picker">
+              <!-- Fire -->
+              <div class="class-card active" data-element="fire">
+                <button class="element-btn" data-element="fire">
+                  <span class="icon">🔥</span>
+                  <span class="class-title">Pyromancer</span>
+                </button>
+                <div class="class-upgrade-row">
+                  <span class="class-lvl" id="lvl-fire">Lvl 1</span>
+                  <button class="btn upgrade-btn" data-element="fire" id="btn-upgrade-fire">Upgrade (200 🪙)</button>
+                </div>
+              </div>
+              
+              <!-- Ice -->
+              <div class="class-card" data-element="ice">
+                <button class="element-btn" data-element="ice">
+                  <span class="icon">❄️</span>
+                  <span class="class-title">Cryomancer</span>
+                </button>
+                <div class="class-upgrade-row">
+                  <span class="class-lvl" id="lvl-ice">Lvl 1</span>
+                  <button class="btn upgrade-btn" data-element="ice" id="btn-upgrade-ice">Upgrade (200 🪙)</button>
+                </div>
+              </div>
+
+              <!-- Lightning -->
+              <div class="class-card" data-element="lightning">
+                <button class="element-btn" data-element="lightning">
+                  <span class="icon">⚡</span>
+                  <span class="class-title">Electromancer</span>
+                </button>
+                <div class="class-upgrade-row">
+                  <span class="class-lvl" id="lvl-lightning">Lvl 1</span>
+                  <button class="btn upgrade-btn" data-element="lightning" id="btn-upgrade-lightning">Upgrade (200 🪙)</button>
+                </div>
+              </div>
+
+              <!-- Earth -->
+              <div class="class-card" data-element="earth">
+                <button class="element-btn" data-element="earth">
+                  <span class="icon">🍃</span>
+                  <span class="class-title">Geomancer</span>
+                </button>
+                <div class="class-upgrade-row">
+                  <span class="class-lvl" id="lvl-earth">Lvl 1</span>
+                  <button class="btn upgrade-btn" data-element="earth" id="btn-upgrade-earth">Upgrade (200 🪙)</button>
+                </div>
+              </div>
+
+              <!-- Water -->
+              <div class="class-card" data-element="water">
+                <button class="element-btn" data-element="water">
+                  <span class="icon">🌊</span>
+                  <span class="class-title">Hydromancer</span>
+                </button>
+                <div class="class-upgrade-row">
+                  <span class="class-lvl" id="lvl-water">Lvl 1</span>
+                  <button class="btn upgrade-btn" data-element="water" id="btn-upgrade-water">Upgrade (200 🪙)</button>
+                </div>
+              </div>
+
+              <!-- Wind -->
+              <div class="class-card" data-element="wind">
+                <button class="element-btn" data-element="wind">
+                  <span class="icon">🌪️</span>
+                  <span class="class-title">Tempest Wizard</span>
+                </button>
+                <div class="class-upgrade-row">
+                  <span class="class-lvl" id="lvl-wind">Lvl 1</span>
+                  <button class="btn upgrade-btn" data-element="wind" id="btn-upgrade-wind">Upgrade (200 🪙)</button>
+                </div>
+              </div>
+
+              <!-- Necromancer (Locked initially) -->
+              <div class="class-card locked" id="card-necromancer" data-element="necromancer">
+                <div class="lock-overlay">
+                  <span class="lock-icon">🔒</span>
+                  <span class="lock-req" id="necro-lock-msg">Req: Profile Lvl 5 & 3 Impossible / 5 Hard Wins</span>
+                </div>
+                <button class="element-btn" data-element="necromancer" disabled>
+                  <span class="icon">💀</span>
+                  <span class="class-title">Necromancer</span>
+                </button>
+                <div class="class-upgrade-row">
+                  <span class="class-lvl" id="lvl-necromancer">Lvl 1</span>
+                  <button class="btn upgrade-btn" data-element="necromancer" id="btn-upgrade-necromancer" disabled>Upgrade (200 🪙)</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Connectivity & Mode Select -->
+        <section class="panel glass-panel connectivity-panel">
+          <h2>Enter the Arena</h2>
+
+          <div class="form-group">
+            <label for="bot-difficulty">Bot AI Difficulty</label>
+            <select id="bot-difficulty" class="difficulty-select">
+              <option value="easy">Easy (100 🪙 | 10 EXP)</option>
+              <option value="medium" selected>Medium (200 🪙 | 15 EXP)</option>
+              <option value="hard">Hard (300 🪙 | 20 EXP)</option>
+              <option value="impossible">Impossible (400 🪙 | 40 EXP)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="map-selector">Select Battle Map</label>
+            <select id="map-selector" class="map-select">
+              <option value="random" selected>Random Hazards Map</option>
+              <option value="magma">Magma Chamber (Lava DOT)</option>
+              <option value="ice">Ice Citadel (Slippery & Blizzard)</option>
+              <option value="storm">Storm Temple (Lightning Strikes)</option>
+              <option value="earth">Ruins of Earth (Stone Pillars)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="match-duration">Match Duration</label>
+            <select id="match-duration" class="duration-select">
+              <option value="60">1 Minute</option>
+              <option value="90" selected>1.5 Minutes</option>
+              <option value="120">2 Minutes</option>
+              <option value="180">3 Minutes</option>
+              <option value="300">5 Minutes</option>
+            </select>
+          </div>
+
+          <div class="divider-thin"></div>
+
+          <!-- Main Mode Selection -->
+          <div id="mode-selection" class="mode-selection-group">
+            <button id="btn-mode-bot" class="btn primary-btn glow-btn mode-card-btn">
+              <span class="mode-icon">🤖</span>
+              <div class="mode-text">
+                <span class="mode-title">VS Bot</span>
+                <span class="mode-desc">Fight against an AI spellcaster offline</span>
+              </div>
+            </button>
+            <div class="divider-thin"></div>
+            <button id="btn-mode-player" class="btn secondary-btn mode-card-btn">
+              <span class="mode-icon">🔮</span>
+              <div class="mode-text">
+                <span class="mode-title">VS Player</span>
+                <span class="mode-desc">Duel a friend online via code</span>
+              </div>
+            </button>
+          </div>
+
+          <!-- P2P Matchmaking actions (hidden by default) -->
+          <div id="p2p-actions" class="hidden">
+            <button id="btn-host" class="btn primary-btn glow-btn">Create Match (Host)</button>
+            <div class="divider"><span>OR</span></div>
+            <div class="join-input-group">
+              <input type="text" id="join-id-input" placeholder="Enter Duel Code...">
+              <button id="btn-join" class="btn secondary-btn">Join Match</button>
+            </div>
+            <button id="btn-p2p-back" class="btn link-btn" style="margin-top: 15px; color: var(--text-muted); background: transparent; border: none; font-size: 0.9rem; cursor: pointer; text-decoration: underline;">← Back to Modes</button>
+          </div>
+
+          <!-- Waiting/Hosting Status -->
+          <div id="host-status" class="status-box hidden">
+            <div class="spinner"></div>
+            <p>Awaiting opponent to join...</p>
+            <div class="lobby-code-box">
+              <span class="label">Duel Code:</span>
+              <span id="lobby-code" class="code-value">------</span>
+              <button id="btn-copy-code" class="btn small-btn" title="Copy Code">📋</button>
+            </div>
+            <button id="btn-cancel-host" class="btn danger-btn small-btn">Cancel</button>
+          </div>
+
+          <!-- Connecting Status -->
+          <div id="connect-status" class="status-box hidden">
+            <div class="spinner border-glow"></div>
+            <p id="connect-status-text">Connecting to matchmaking...</p>
+            <button id="btn-cancel-connect" class="btn danger-btn small-btn">Cancel</button>
+          </div>
+        </section>
+      </main>
+
+      <!-- Global Leaderboard Display -->
+      <section class="leaderboard-section glass-panel border-glow">
+        <h2>🏆 Global Arena Leaderboard</h2>
+        <div class="leaderboard-container">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Wizard ID</th>
+                <th>Wins</th>
+                <th>Level</th>
+                <th>Coins</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+              <tr>
+                <td colspan="5">Loading top spellcasters...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Suggestions and Feedback Section -->
+      <section class="suggestions-section glass-panel border-glow">
+        <h2>💬 Arena Suggestions & Feedback</h2>
+        <p>Help us improve Spellcasters' Arena! Submit your suggestions directly to the arch-mages.</p>
+        <form id="suggestion-form" class="suggestion-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="suggest-rating">Rate the Arena</label>
+              <select id="suggest-rating" name="Rating" required>
+                <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                <option value="4">⭐⭐⭐⭐ Good</option>
+                <option value="3" selected>⭐⭐⭐ Fair</option>
+                <option value="2">⭐⭐ Poor</option>
+                <option value="1">⭐ Unplayable</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="suggest-text">Your Suggestion</label>
+            <textarea id="suggest-text" name="Suggestion" placeholder="Add custom elements, improve balancing, write details here..." required></textarea>
+          </div>
+          <button type="submit" id="btn-suggest-submit" class="btn secondary-btn">Cast Suggestion Spell</button>
+          <p id="suggestion-status" class="success-text"></p>
+        </form>
+      </section>
+
+      <footer class="lobby-footer">
+        <p>Direct peer-to-peer multiplayer using WebRTC. No install, no server latency.</p>
+      </footer>
+    </div>
+
+    <!-- Arena Game View -->
+    <div id="arena-screen" class="screen">
+      <!-- Game HUD (Top Bar) -->
+      <header class="game-hud">
+        <!-- Player 1 Profile (Left) -->
+        <div class="hud-profile player-left">
+          <div class="profile-info">
+            <span id="p1-name" class="wizard-name">P1 Wizard</span>
+            <span class="wizard-class" id="p1-class">Pyromancer</span>
+          </div>
+          <div class="stat-bars">
+            <div class="bar-container health-container">
+              <div id="p1-health-bar" class="bar health-bar" style="width: 100%;"></div>
+              <span id="p1-health-text" class="bar-text">100 / 100</span>
+            </div>
+            <div class="bar-container mana-container">
+              <div id="p1-mana-bar" class="bar mana-bar" style="width: 100%;"></div>
+              <span id="p1-mana-text" class="bar-text">100 / 100</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timer / Round State (Center) -->
+        <div class="hud-center">
+          <div class="round-timer" id="game-timer">99</div>
+          <div class="ping-display" id="ping-text">Ping: -- ms</div>
+        </div>
+
+        <!-- Player 2 Profile (Right) -->
+        <div class="hud-profile player-right">
+          <div class="profile-info">
+            <span id="p2-name" class="wizard-name">P2 Wizard</span>
+            <span class="wizard-class" id="p2-class">Cryomancer</span>
+          </div>
+          <div class="stat-bars">
+            <div class="bar-container health-container">
+              <div id="p2-health-bar" class="bar health-bar" style="width: 100%;"></div>
+              <span id="p2-health-text" class="bar-text">100 / 100</span>
+            </div>
+            <div class="bar-container mana-container">
+              <div id="p2-mana-bar" class="bar mana-bar" style="width: 100%;"></div>
+              <span id="p2-mana-text" class="bar-text">100 / 100</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Playfield Canvas -->
+      <div id="canvas-wrapper">
+        <canvas id="arena-canvas" width="1024" height="576"></canvas>
+        
+        <!-- Center announcement banner -->
+        <div id="announcer-banner" class="announcer hidden">
+          <h2 id="announcer-text">ROUND START</h2>
+        </div>
+      </div>
+
+      <!-- Control HUD & Skills Bar (Bottom Bar) -->
+      <footer class="game-hud-bottom">
+        <!-- Active Spells Slots -->
+        <div class="spells-bar">
+          <div class="spell-slot" id="slot-1" data-key="1">
+            <span class="key-bind">1</span>
+            <div class="spell-icon" id="icon-1">🔥</div>
+            <div class="cooldown-overlay" id="cd-1"></div>
+            <div class="spell-tooltip" id="tooltip-1">
+              <h4>Fireball</h4>
+              <p>Launch a quick projectile.</p>
+              <small>Cooldown: 1s | Mana: 15</small>
+            </div>
+          </div>
+          <div class="spell-slot" id="slot-2" data-key="2">
+            <span class="key-bind">2</span>
+            <div class="spell-icon" id="icon-2">❄️</div>
+            <div class="cooldown-overlay" id="cd-2"></div>
+            <div class="spell-tooltip" id="tooltip-2">
+              <h4>Frost Barrier</h4>
+              <p>Deploy a protective shield.</p>
+              <small>Cooldown: 6s | Mana: 30</small>
+            </div>
+          </div>
+          <div class="spell-slot" id="slot-3" data-key="3">
+            <span class="key-bind">3</span>
+            <div class="spell-icon" id="icon-3">⚡</div>
+            <div class="cooldown-overlay" id="cd-3"></div>
+            <div class="spell-tooltip" id="tooltip-3">
+              <h4>Thunderbolt</h4>
+              <p>Strike a target area.</p>
+              <small>Cooldown: 8s | Mana: 40</small>
+            </div>
+          </div>
+          <div class="spell-slot" id="slot-4" data-key="4">
+            <span class="key-bind">4</span>
+            <div class="spell-icon" id="icon-4">🍃</div>
+            <div class="cooldown-overlay" id="cd-4"></div>
+            <div class="spell-tooltip" id="tooltip-4">
+              <h4>Rejuvenate</h4>
+              <p>Heal wounds over time.</p>
+              <small>Cooldown: 12s | Mana: 35</small>
+            </div>
+          </div>
+          <div class="spell-slot" id="slot-5" data-key="5">
+            <span class="key-bind">5</span>
+            <div class="spell-icon" id="icon-5">🛡️</div>
+            <div class="cooldown-overlay" id="cd-5"></div>
+            <div class="spell-tooltip" id="tooltip-5">
+              <h4>Class Shield</h4>
+              <p>Absorb damage for 5 seconds.</p>
+              <small>Cooldown: 3s | Mana: 25</small>
+            </div>
+          </div>
+          <div class="spell-slot utility-slot" id="slot-6" data-key="6">
+            <span class="key-bind">6</span>
+            <div class="spell-icon" id="icon-6">🧪</div>
+            <div class="cooldown-overlay" id="cd-6"></div>
+            <div class="utility-count" id="count-6">2</div>
+            <div class="spell-tooltip" id="tooltip-6">
+              <h4>Healing Potion</h4>
+              <p>Instantly restore 40 Health. (2 charges per match)</p>
+              <small>No Cooldown</small>
+            </div>
+          </div>
+          <div class="spell-slot utility-slot" id="slot-7" data-key="7">
+            <span class="key-bind">7</span>
+            <div class="spell-icon" id="icon-7">📦</div>
+            <div class="cooldown-overlay" id="cd-7"></div>
+            <div class="utility-count" id="count-7">1</div>
+            <div class="spell-tooltip" id="tooltip-7">
+              <h4>Crate Wall</h4>
+              <p>Form 3 blocking blocks in front of the enemy. Lasts 15s. (1 charge per match)</p>
+              <small>No Cooldown</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Chat / Emote System -->
+        <div class="quick-chat-container">
+          <button id="btn-chat-toggle" class="btn circle-btn" title="Quick Chat">💬</button>
+          <div id="quick-chat-panel" class="quick-chat-panel hidden">
+            <button class="chat-macro" data-msg="GG!">GG!</button>
+            <button class="chat-macro" data-msg="Nice shot!">Nice shot!</button>
+            <button class="chat-macro" data-msg="Oops...">Oops...</button>
+            <button class="chat-macro" data-msg="Let's go!">Let's go!</button>
+            <button class="chat-macro" data-msg="Lag?!">Lag?!</button>
+            <button class="chat-macro" data-msg="Well played.">Well played.</button>
+          </div>
+        </div>
+
+        <!-- Exit Match / Settings Button -->
+        <div class="controls-guide">
+          <span>Move: <strong>WASD</strong> or <strong>Arrows</strong></span>
+          <span>Aim: <strong>Mouse Pointer</strong></span>
+          <span>Cast: <strong>Left Click</strong> (Selected) or <strong>1-4</strong> keys</span>
+        </div>
+        
+        <button id="btn-disconnect" class="btn danger-btn">Leave Duel</button>
+      </footer>
+    </div>
+
+    <!-- Match Summary Screen -->
+    <div id="summary-screen" class="screen">
+      <div class="summary-card glass-panel border-glow">
+        <h1 id="summary-title">VICTORY</h1>
+        <p id="summary-message">You defeated your opponent!</p>
+        
+        <div class="summary-stats">
+          <div class="stat-row">
+            <span>Damage Dealt:</span>
+            <span id="stat-damage">0</span>
+          </div>
+          <div class="stat-row">
+            <span>Spells Cast:</span>
+            <span id="stat-spells">0</span>
+          </div>
+          <div class="stat-row">
+            <span>Barriers Blocked:</span>
+            <span id="stat-blocks">0</span>
+          </div>
+        </div>
+
+        <div class="summary-actions">
+          <button id="btn-rematch" class="btn primary-btn glow-btn">Request Rematch</button>
+          <button id="btn-summary-lobby" class="btn secondary-btn">Return to Lobby</button>
+        </div>
+        <p id="rematch-status" class="rematch-status-text"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio elements could be added, but sound synthesis is done via Web Audio API in JS directly! -->
+
+  <!-- JavaScript Modules -->
+  <script src="database.js"></script>
+  <script src="particle.js"></script>
+  <script src="network.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
